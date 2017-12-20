@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapeNews.items import ScrapenewsItem
-from scrapeNews.db import DatabaseManager, LogsManager
 from scrapeNews.settings import logger
 
 class NewsxSpider(scrapy.Spider):
@@ -12,10 +11,7 @@ class NewsxSpider(scrapy.Spider):
     page_count = 1
     custom_settings = {
         'site_name': "newsx",
-        'site_url': "http://www.newsx.com/latest-news/",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
+        'site_url': "http://www.newsx.com/latest-news/"
     }
 
     def start_requests(self):
@@ -28,11 +24,11 @@ class NewsxSpider(scrapy.Spider):
                 newsContainer = response.xpath("//div[contains(@class,'cat-grid-gap')]/div[@class='well ft2']")
                 for newsBox in newsContainer:
                     link = newsBox.xpath('div/a/@href').extract_first()
-                    if not DatabaseManager().urlExists(link):
-                        self.custom_settings['url_stats']['parsed'] += 1
+                    if not self.dbconn.urlExists(link):
+                        self.url_stats['parsed'] += 1
                         yield scrapy.Request(url=link, callback=self.parse_article)
                     else:
-                        self.custom_settings['url_stats']['dropped'] += 1
+                        self.url_stats['dropped'] += 1
                 self.page_count += 1
                 yield scrapy.Request(self.start_url + str(self.page_count), self.parse)
             except Exception as e:
@@ -50,10 +46,10 @@ class NewsxSpider(scrapy.Spider):
         item['link'] = response.url
 
         if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['link'] is not 'Error' or item['newsDate'] is not 'Error':
-            self.custom_settings['url_stats']['scraped'] += 1
+            self.url_stats['scraped'] += 1
             yield item
         else:
-            self.custom_settings['url_stats']['dropped'] += 1
+            self.url_stats['dropped'] += 1
             yield None
 
 
@@ -99,7 +95,3 @@ class NewsxSpider(scrapy.Spider):
             logger.error(__name__ + " Unable to Extract Content: " + response.url + " :: " + str(e))
             data = 'Error'
         return data
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to End Log for spider " + self.name + " with stats " + str(self.custom_settings['url_stats']))

@@ -8,7 +8,7 @@
 ########################################################################################
 
 # Activate the Virtual Environment
-source /home/lucifer/Documents/scrapydServer/deploy/venv/bin/activate
+source /home/lucifer/extdrive/Documents/thisisayush/venv/bin/activate
 
 #Set The Environment Variables
 export SCRAPER_DB_HOST="localhost"

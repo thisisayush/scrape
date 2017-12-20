@@ -2,7 +2,6 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
 from scrapeNews.settings import logger
-from scrapeNews.db import LogsManager, DatabaseManager
 
 class AsianageSpider(scrapy.Spider):
 
@@ -13,9 +12,9 @@ class AsianageSpider(scrapy.Spider):
     custom_settings = {
         'site_name': "asianage",
         'site_url': "http://www.asianage.com/newsmakers",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
+#        'site_id': -1,
+#        'log_id': -1,
+#        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
 
@@ -30,7 +29,7 @@ class AsianageSpider(scrapy.Spider):
         try:
             newsContainer = response.xpath("//div[contains(@class,'india-news')]/div[@class='singlesunday']")
             for newsBox in newsContainer:
-                self.custom_settings['url_stats']['parsed'] += 1
+                self.url_stats['parsed'] += 1
                 item = ScrapenewsItem()  # Scraper Items
                 item['image'] = self.getPageImage(newsBox)
                 item['title'] = self.getPageTitle(newsBox)
@@ -39,10 +38,10 @@ class AsianageSpider(scrapy.Spider):
                 item['link'] = self.getPageLink(newsBox)
 
                 if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['link'] is not 'Error' or item['newsDate'] is not 'Error':
-                    self.custom_settings['url_stats']['scraped'] += 1
+                    self.url_stats['scraped'] += 1
                     yield item
                 else:
-                    self.custom_settings['url_stats']['dropped'] += 1
+                    self.url_stats['dropped'] += 1
                     yield None
             next_page_link = response.xpath("//div[contains(@class,'pagingBlock')]/ul/li/a/@href").extract()[-1]
             if next_page_link != "#":
@@ -85,7 +84,3 @@ class AsianageSpider(scrapy.Spider):
             logger.error(__name__ + " Unable to extract Date: " + str(newsBox.extract_first()))
             data = 'Error'
         return data
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to End Log for Spider " + self.name + " with stats: " + str(self.custom_settings['url_stats']))

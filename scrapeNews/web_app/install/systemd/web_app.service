@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=lucifer
 Group=www-data
-WorkingDirectory=/home/lucifer/Documents/scrapydServer/scrape/scrapeNews/web_app
-Environment="PATH=/home/lucifer/Documents/scrapydServer/deploy/venv/bin"
-ExecStart=/home/lucifer/Documents/scrapydServer/scrape/scrapeNews/web_app/start
+WorkingDirectory=/home/lucifer/extdrive/Documents/thisisayush/scrape/scrapeNews/web_app
+Environment="PATH=/home/lucifer/extdrive/Documents/thisisayush/deploy/venv/bin"
+ExecStart=/home/lucifer/extdrive/Documents/thisisayush/scrape/scrapeNews/web_app/start
 
 [Install]
 WantedBy=multi-user.target

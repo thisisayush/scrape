@@ -2,7 +2,6 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
 from scrapeNews.settings import logger
-from scrapeNews.db import DatabaseManager, LogsManager
 
 class FirstpostsportsSpider(scrapy.Spider):
 
@@ -12,9 +11,6 @@ class FirstpostsportsSpider(scrapy.Spider):
     custom_settings = {
         'site_name': "firstpost(sports)",
         'site_url': "http://www.firstpost.com/category/sports/",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
     start_url = "http://www.firstpost.com/category/sports/page/1"
@@ -30,11 +26,11 @@ class FirstpostsportsSpider(scrapy.Spider):
             newsContainer = response.xpath("//ul[@class='articles-list']/li")
             for newsBox in newsContainer:
                 link = newsBox.xpath('a/@href').extract_first()
-                if not DatabaseManager().urlExists(link):
-                    self.custom_settings['url_stats']['parsed'] += 1
+                if not self.dbconn.urlExists(link):
+                    self.url_stats['parsed'] += 1
                     yield scrapy.Request(url=link, callback=self.parse_article)
                 else:
-                    self.custom_settings['url_stats']['dropped'] += 1
+                    self.url_stats['dropped'] += 1
             last_page = response.urljoin(response.xpath("//ul[contains(@class,'pagination')]/li/a/@href").extract()[-1])
             next_page = response.urljoin(response.xpath("//a[@rel='next']/@href").extract_first())
             if next_page != None:
@@ -58,10 +54,10 @@ class FirstpostsportsSpider(scrapy.Spider):
             item['link'] = response.url
             #item['source'] = 112
             if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['link'] is not 'Error' or item['newsDate'] is not 'Error':
-                self.custom_settings['url_stats']['scraped'] += 1
+                self.url_stats['scraped'] += 1
                 yield item
             else:
-                self.custom_settings['url_stats']['dropped'] += 1
+                self.url_stats['dropped'] += 1
                 yield None
 
 
@@ -107,7 +103,3 @@ class FirstpostsportsSpider(scrapy.Spider):
             logger.error(__name__+" Error Extracting Content <"+response.url+">: "+str(Error))
             data = 'Error'
         return data
-
-    def close(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to end log for spider " + self.name + " with url stats " + str(self.custom_settings['url_stats']))

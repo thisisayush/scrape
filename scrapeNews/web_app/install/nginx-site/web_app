@@ -3,13 +3,22 @@ server {
     server_name 101.53.136.82;
     
     location /static {
-        alias /home/lucifer/Documents/scrapydServer/scrape/scrapeNews/web_app/static;
+        alias /home/lucifer/extdrive/Documents/thisisayush/scrape/scrapeNews/web_app/static;
         autoindex on;
         expires max;
     }
 
+    location /logfiles {
+        alias /home/lucifer/Documents/scrapydServer/deploy/logs;
+        autoindex on;
+        
+        location ~* \.log{
+            add_header Content-Type text/plain;
+        }
+    }
+
     location / {
         include proxy_params;
-        proxy_pass http://unix:/home/lucifer/Documents/scrapydServer/scrape/scrapeNews/web_app/web_app.sock;
+        proxy_pass http://unix:/home/lucifer/extdrive/Documents/thisisayush/scrape/scrapeNews/web_app/web_app.sock;
     }
 }

@@ -1,6 +1,5 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
-from scrapeNews.db import LogsManager
 from scrapeNews.settings import logger
 
 class zeespider(scrapy.Spider):
@@ -10,9 +9,6 @@ class zeespider(scrapy.Spider):
     custom_settings = {
         'site_name': "Zee News",
         'site_url': "http://zeenews.india.com/india",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
     #Scraping the main page for article links
@@ -25,7 +21,7 @@ class zeespider(scrapy.Spider):
             for article in articles:
                 x = article.xpath('.//h3/a[2]') #extracts <a> tag from start _url
                 link = x.xpath('.//@href').extract_first()  #extracts URL for the articles recursively
-                self.custom_settings['url_stats']['parsed'] += 1
+                self.url_stats['parsed'] += 1
                 yield response.follow(link, callback = self.parse_news)
 
             #For scraping the links on the next page of the website
@@ -45,11 +41,11 @@ class zeespider(scrapy.Spider):
             i['content'] = self.getcontent(response)
             i['link'] = response.url #scrapes link; article page
 
-            self.custom_settings['url_stats']['scraped'] += 1
+            self.url_stats['scraped'] += 1
 
             yield i
         except Exception as e:
-            self.custom_settings['url_stats']['dropped'] += 1
+            self.url_stats['dropped'] += 1
             yield None
 
     def getcontent(self,response):
@@ -62,7 +58,3 @@ class zeespider(scrapy.Spider):
             logger.error(__name__ + " Unable to Extract Content : " + response.url + " :: " + str(e))
             data = 'Error'
         return data
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to end log for spider " + self.name +" with url stats : " + str(self.custom_settings['url_stats']))

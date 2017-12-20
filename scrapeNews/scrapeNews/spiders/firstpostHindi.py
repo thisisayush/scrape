@@ -2,22 +2,14 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
 from scrapeNews.settings import logger
-from scrapeNews.db import DatabaseManager, LogsManager
 
 class FirstposthindiSpider(scrapy.Spider):
 
     name = 'firstpostHindi'
-    custom_settings = {
-        'site_id':111,
-        'site_name':'firstpost(hindi)',
-        'site_url':'https://hindi.firstpost.com/category/latest/'}
 
     custom_settings = {
         'site_name': "firstpost(hindi)",
         'site_url': "https://hindi.firstpost.com/category/latest/",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
     start_url = "https://hindi.firstpost.com/category/latest/page-1/"
@@ -31,11 +23,11 @@ class FirstposthindiSpider(scrapy.Spider):
         newsContainer = response.xpath("//ul[@id='more_author_story']/li")
         for newsBox in newsContainer:
             link = newsBox.xpath('h2/a/@href').extract_first()
-            if not DatabaseManager().urlExists(link):
-                self.custom_settings['url_stats']['parsed'] += 1
+            if not self.dbconn.urlExists(link):
+                self.url_stats['parsed'] += 1
                 yield scrapy.Request(url=link, callback=self.parse_article)
             else:
-                self.custom_settings['url_stats']['dropped'] += 1
+                self.url_stats['dropped'] += 1
         last_page = response.urljoin(response.xpath("//div[@class='pagination']/ul/li/a/@href").extract()[-1])
         next_page = response.urljoin(response.xpath("//div[@class='pagination']/ul/li[@class='active']/following-sibling::li/a/@href").extract_first())
         if last_page != response.url:
@@ -52,13 +44,13 @@ class FirstposthindiSpider(scrapy.Spider):
             item['link'] = response.url
 
             if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['link'] is not 'Error' or item['newsDate'] is not 'Error':
-                self.custom_settings['url_stats']['scraped'] += 1
+                self.url_stats['scraped'] += 1
                 yield item
             else:
-                self.custom_settings['url_stats']['dropped'] += 1
+                self.url_stats['dropped'] += 1
                 yield None
         else:
-            self.custom_settings['url_stats']['dropped'] += 1
+            self.url_stats['dropped'] += 1
 
 
     def getPageTitle(self, response):
@@ -105,6 +97,3 @@ class FirstposthindiSpider(scrapy.Spider):
         except Exception as e:
             logger.error(__name__ + " Unhandled: " + str(e))
             return "Error"
-
-    def closed(self, reason):
-        LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason)

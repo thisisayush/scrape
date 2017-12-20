@@ -2,7 +2,6 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
 from scrapeNews.settings import logger
-from scrapeNews.db import DatabaseManager, LogsManager
 
 class IndianexpresstechSpider(scrapy.Spider):
 
@@ -34,11 +33,11 @@ class IndianexpresstechSpider(scrapy.Spider):
                 newsContainer = response.xpath('//div[@class="top-article"]/ul[@class="article-list"]/li')
                 for newsBox in newsContainer:
                     link = newsBox.xpath('figure/a/@href').extract_first()
-                    if not DatabaseManager().urlExists(link):
-                        self.custom_settings['url_stats']['parsed'] += 1
+                    if not self.dbconn.urlExists(link):
+                        self.url_stats['parsed'] += 1
                         yield scrapy.Request(url=link, callback=self.parse_article)
                     else:
-                        self.custom_settings['url_stats']['dropped'] += 1
+                        self.url_stats['dropped'] += 1
                 self.page_count += 1
                 yield scrapy.Request(self.start_url+str(self.page_count), self.parse)
         except Exception as e:
@@ -54,10 +53,10 @@ class IndianexpresstechSpider(scrapy.Spider):
         item['link'] = response.url
 
         if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['newsDate'] is not 'Error':
-            self.custom_settings['url_stats']['scraped'] += 1
+            self.url_stats['scraped'] += 1
             yield item
         else:
-            self.custom_settings['url_stats']['dropped'] += 1
+            self.url_stats['dropped'] += 1
             yield None
 
     def getPageContent(self, response):
@@ -98,7 +97,3 @@ class IndianexpresstechSpider(scrapy.Spider):
             logger.error(__name__+" Error Extracting Date: " + response.url + " : " + str(Error))
             data = 'Error'
         return data
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to end log for spider " + self.name + " with stats " + str(self.custom_settings['url_stats']))

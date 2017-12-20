@@ -2,7 +2,6 @@
 import scrapy
 import json
 from scrapeNews.items import ScrapenewsItem
-from scrapeNews.db import LogsManager
 from scrapy.http import FormRequest
 from scrapy.selector import Selector
 
@@ -14,9 +13,6 @@ class InshortsSpider(scrapy.Spider):
     custom_settings = {
         'site_name': "Inshorts",
         'site_url': "http://www.inshorts.com/en/read/",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
     def start_requests(self):
@@ -35,14 +31,14 @@ class InshortsSpider(scrapy.Spider):
             body = Selector(text=response_data['html'])
             for news in body.css('div.news-card'):
                 item = ScrapenewsItem()
-                self.custom_settings['url_stats']['parsed'] += 1
+                self.url_stats['parsed'] += 1
                 item['image'] = news.css('div.news-card-image::attr(style)').extract_first()[23:-3]
                 item['title'] = news.css('a.clickable>span::text').extract_first()
                 item['content'] = news.css('div[itemprop*=articleBody]::text').extract_first()
                 item['newsDate'] = news.css('span.time::attr(content)').extract_first()[:-5]
                 item['link'] = news.css('div.read-more>a::attr(href)').extract_first()
                 #item['source'] = 105
-                self.custom_settings['url_stats']['scraped'] += 1
+                self.url_stats['scraped'] += 1
                 yield item
 
             yield FormRequest(self.start_url, formdata={"news_offset": response_data['min_news_id']}, callback=self.parse)
@@ -51,7 +47,3 @@ class InshortsSpider(scrapy.Spider):
             return False
         except Exception as e:
             logger.error(__name__+" Unhandled: "+str(e))
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to end log for spider " + self.name + " with url stats " + str(self.custom_settings['url_stats']))

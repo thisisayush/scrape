@@ -105,7 +105,7 @@ handler = logging.FileHandler('logs/scrapeNews.log')
 formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s [Line %(lineno)d]  %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 
 #DATABASE CONFIG
 

@@ -2,7 +2,6 @@
 import scrapy
 from scrapeNews.items import ScrapenewsItem
 from scrapeNews.settings import logger
-from scrapeNews.db import LogsManager, DatabaseManager
 
 class MoneycontrolSpider(scrapy.Spider):
 
@@ -12,9 +11,6 @@ class MoneycontrolSpider(scrapy.Spider):
     custom_settings = {
         'site_name': "moneyControl",
         'site_url': "http://www.moneycontrol.com/news/business/",
-        'site_id': -1,
-        'log_id': -1,
-        'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
     }
 
     start_url = "http://www.moneycontrol.com/news/business/page-"
@@ -31,7 +27,7 @@ class MoneycontrolSpider(scrapy.Spider):
             newsContainer = response.xpath("//ul[@id='cagetory']/li[@class='clearfix']")
             for newsBox in newsContainer:
                 item = ScrapenewsItem()  # Scraper Items
-                self.custom_settings['url_stats']['parsed'] += 1
+                self.url_stats['parsed'] += 1
                 item['image'] = self.getPageImage(newsBox)
                 item['title'] = self.getPageTitle(newsBox)
                 item['content'] = self.getPageContent(newsBox)
@@ -39,14 +35,14 @@ class MoneycontrolSpider(scrapy.Spider):
                 item['link'] = self.getPageLink(newsBox)
 
                 if item['image'] is not 'Error' or item['title'] is not 'Error' or item['content'] is not 'Error' or item['link'] is not 'Error' or item['newsDate'] is not 'Error':
-                    if not DatabaseManager().urlExists(item['link']):
-                        self.custom_settings['url_stats']['scraped'] += 1
+                    if not self.dbconn.urlExists(item['link']):
+                        self.url_stats['scraped'] += 1
                         yield item
                     else:
-                        self.custom_settings['url_stats']['dropped'] += 1
+                        self.url_stats['dropped'] += 1
                         yield None
                 else:
-                    self.custom_settings['url_stats']['dropped'] += 1
+                    self.url_stats['dropped'] += 1
                     yield None
             pagenation = response.xpath("//div[@class='pagenation']/a/@data-page").extract()
             next_page = response.urljoin(self.start_url+pagenation[-2])
@@ -114,7 +110,3 @@ class MoneycontrolSpider(scrapy.Spider):
             data = "Error"
         
         return data
-
-    def closed(self, reason):
-        if not LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason):
-            logger.error(__name__ + " Unable to end log for spider " + self.name + " with stats " + str(self.custom_settings['url_stats']))
