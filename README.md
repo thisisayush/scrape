@@ -27,9 +27,7 @@ Linux: `source VENV_NAME/bin/activate`
 Navigate to repository: `pip install -r requirements.txt`
 
 - Requirements(For scraping):
-    - scrapy
-    - requests
-    - python-dateutil
+    - Python3
     - TOR
     - Privoxy
 
@@ -41,7 +39,7 @@ Navigate to repository: `pip install -r requirements.txt`
 
 - Requirements(for Deploying)
    - Scrapyd
-   - Scrapyd-Client ( Use ```pip install git+https://github.com/scrapy/scrapyd-client```
+   - Scrapyd-Client ( Use ```pip install git+https://github.com/scrapy/scrapyd-client``` )
 
 
 ### Install TOR and Privoxy
@@ -86,6 +84,7 @@ forward-socks5t / 127.0.0.1:9050 .
     export SCRAPER_DB_USER=YOUR_ROLE_NAME/YOUR_USERNAME
     export SCRAPER_DB_PASS=YOUR_PASSWORD
     export SCRAPER_DB_NAME=YOUR_DATABASE_NAME
+    export FLASK_APP=server.py
     ```
 
 ### Configuring your spiders
@@ -94,33 +93,26 @@ Add the following inside your spider class,
 
 ```python
 
-from scrapeNews.db import LogsManager
-
 custom_settings = {
     'site_name': "asianage",
     'site_url': "http://www.asianage.com/newsmakers",
-    'site_id': -1,
-    'log_id': -1,
-    'url_stats': {'parsed': 0, 'scraped': 0, 'dropped': 0, 'stored': 0}
 }
-
-def closed(self, reason):
-    LogsManager().end_log(self.custom_settings['log_id'], self.custom_settings['url_stats'], reason)
-
 ```
-
 
 ### Run Spiders
 **Note: Navigate to the folder containing scrapy.cfg**
+In order to run spiders, make sure:
+- PostgreSQL Server is running
+- TOR and Privoxy are running
 ```
 scrapy crawl SPIDER_NAME
 ```
 - SPIDER_NAME List:
-	1. indianExpressTech
-	2. indiaTv  
-	3. timeTech
-	4. ndtv
-	5. inshorts
+    1. indianExpressTech
+    2. indiaTv  
+    3. timeTech
+    4. ndtv
+    5. inshorts
     6. zeeNews
     7. News18Spider
     8. moneyControl
@@ -134,13 +126,84 @@ scrapy crawl SPIDER_NAME
     16. timeNews
     17. newsNation [In development]
 
+### Objects Available for Spiders
+- site_id: Contains SITE_ID for a spider, fetched from database
+- url_stats: Contains the dictionary ```{'parsed': 0, 'stored': 0, 'scraped': 0, 'dropped': 0}```
+- dbconn: DatabaseManager() Object dedicated for the spider
+- log_id: Contains the id of Database Log Being Used
+
+All the above objects can be used inside a spider using ```self.object_name``` and in pipelines using spider object ```spider.object_name```
+
 ### Additional Utilities 
 
 - scrapeNews.db.DatabaseManager
     - Consists of Various Database Related Utilities
+    - ```urlExists(url)```: Returns Bool. Checks if the given link is present in database
+
 - scrapeNews.db.LogsManager
     - Consists Methods for Managing Spider Run Stats
+
 - scrapeNews.settings.logger
     - Preconfigured Logger, import it and use like ```logger.error(__name__ + " Your_ERROR")```
 
-Happy collaborating !!   
+## Deploying (Server Instructions)
+
+### Create a new Tmux Session
+```
+tmux
+```
+### Install & Activate a Virtual Environment on Server
+```
+virtualenv -p python3 venv
+source venv/bin/activate
+```
+
+#### Install Requirements
+```
+pip install -r requirements.txt
+```
+**Note:** This step is crucial, incase of missing dependencies no spiders will be deployed.
+
+#### Add Environment Variables
+```
+source add_anv.sh
+``` 
+
+#### Install Scrapyd (if not already)
+```
+pip install scrapyd
+```
+#### Start the scrapyd server
+```
+scrapyd
+```
+
+#### Create a new window and start scheduler script
+```
+ctrl+b c
+```
+```
+vitualenv -p python3 venv-scheduler
+source venv-scheduler/bin/activate
+pip install schedule requests
+python scheduler.py
+```
+
+## Deploying (Client Instructions)
+
+Once the Scrapyd Server is up and running, on the same machine do the following:
+Instructions Below Assume you have a virtualenv setup with requirements installed and environment variables added.
+
+### Install Scrapyd-Client
+```
+pip install git+https://github.com/scrapy/scrapyd-client
+```
+
+### Deploy
+```
+scrapyd-deploy
+```
+
+All Set!
+
+Instructions for Web App, COMING SOON!
