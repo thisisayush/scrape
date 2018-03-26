@@ -18,4 +18,3 @@ scrapeNews/envConfig.py
 
 #ignore NLP data
 data/
-models/
