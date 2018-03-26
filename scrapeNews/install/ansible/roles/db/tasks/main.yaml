@@ -1,12 +1,38 @@
 ---
 # Install and Configure Postgres Database Server
 
+- name: add repository keys
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+  when:
+    ansible_distribution == "Ubuntu" and ansible_distribution_version|float <= 16.04 and not remote_db
+
+- name: add repository for psql 9.6
+  shell: add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -sc)-pgdg main"
+#  apt_repository:
+#    repo: 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -sc)-pgdg main'
+#    state: present
+#    update_cache: yes
+  when:
+    ansible_distribution == "Ubuntu" and ansible_distribution_version|float <= 16.04 and not remote_db
+  notify: update cache
+
 - name: Install Postgresql Database
   apt:
-    name: postgresql
+    name: "{{ item }}"
     state: latest
+  with_items:
+    - postgresql
+    - postgresql-9.6
   when: not remote_db
-  notify: start postgresql service
+
+- name: start postgresql service
+  service:
+    name: postgresql
+    state: restarted
+    enabled: yes
+  when: not remote_db
 
 - name: Set Root DB Password
   become_user: postgres

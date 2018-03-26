@@ -1,6 +1,11 @@
 ---
-- name: start postgresql service
+- name: restart postgresql service
   service:
     name: postgresql
-    state: started
+    state: restarted
     enabled: yes
+
+- name: update cache
+  apt:
+    update_cache: yes
+  ignore_errors: yes

@@ -22,4 +22,12 @@
       with_items:
         - python-psycopg2
       when: not remote_db
+    - name: install platform specific db pre-requisites
+      apt:
+        name: "{{ item }}"
+        state: installed
+      with_items:
+        - python-apt
+      when: ansible_distribution == "Ubuntu" and ansible_distribution_version|float <= 16.04 and not remote_db
     - setup: # aka gather_facts
+  gather_facts: True
