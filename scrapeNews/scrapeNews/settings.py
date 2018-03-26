@@ -71,7 +71,8 @@ ITEM_PIPELINES = {
     'scrapeNews.pipelines.ScrapenewsPipeline': 100,
     'scrapeNews.pipelines.DuplicatesPipeline': 200,
     'scrapeNews.pipelines.DataFormatterPipeline': 300,
-    'scrapeNews.pipelines.DatabasePipeline': 400
+    'scrapeNews.pipelines.CategoryClassifierPipeline': 400, 
+    'scrapeNews.pipelines.DatabasePipeline': 500
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

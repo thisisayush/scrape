@@ -11,7 +11,7 @@ from scrapeNews.settings import DB_INFO, logger
 from scrapeNews.db import postgresSQL, createDatabase
 from scrapy.exceptions import CloseSpider, DropItem
 from dateutil import parser
-
+from scrapeNews.newsClassifier import categorize
 #Calling to create database if it doesn't exist already!
 createDatabase()
 
@@ -152,6 +152,17 @@ class DataFormatterPipeline(object):
             except Exception as e:
                 logger.error(__name__ + " Exception: " + str(e))
                 continue
+
+class CategoryClassifierPipeline(object):
+    """ Categorizes the news into category """
+
+    def process_item(self, item, spider):
+        try:
+            category  = categorize(item['content'])
+            item['category'] =  category
+        except Exception as e:
+            logger.error(__name__ + " Exception: Unable to classify Item : " + item['link'] + " :s " + str(e))
+        return item
 
 class DatabasePipeline(object):
     """ Communicates with Database and Stores Finalised Items """

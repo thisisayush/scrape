@@ -22,6 +22,7 @@ class postgresSQL(object):
                             content VARCHAR NOT NULL CHECK (content <> 'Error'),\
                             link VARCHAR NOT NULL UNIQUE,\
                             image VARCHAR NOT NULL,\
+                            category VARCHAR,\
                             newsDate TIMESTAMP WITHOUT TIME ZONE NOT NULL,\
                             datescraped TIMESTAMP WITHOUT TIME ZONE,\
                             site_id SMALLINT NOT NULL REFERENCES " + DB_INFO['SITE_TABLE'] + " (id) ON DELETE CASCADE,  \
@@ -152,13 +153,14 @@ class postgresSQL(object):
             if not self.checkConnection():
                 return False
             # Prepare the Query
-            postgresQuery = "INSERT INTO " + DB_INFO['NEWS_TABLE'] + " (title, content, image, link, newsDate, site_id, log_id, datescraped) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())"
+            postgresQuery = "INSERT INTO " + DB_INFO['NEWS_TABLE'] + " (title, content, image, category, link, newsDate, site_id, log_id, datescraped) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())"
 
             # Execute the Query
             self.cursor.execute(postgresQuery,
                 (item['title'],
                 item['content'],
                 item['image'],
+                item['category'],
                 item['link'],
                 item['newsDate'],
                 item['source'],
