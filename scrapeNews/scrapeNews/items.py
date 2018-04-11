@@ -15,6 +15,7 @@ class ScrapenewsItem(scrapy.Item):
     content = scrapy.Field()
     image = scrapy.Field()
     source = scrapy.Field()
+    category  = scrapy.Field()
 
 
 # item['title']
