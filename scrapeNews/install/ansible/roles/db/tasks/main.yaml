@@ -22,6 +22,7 @@
   apt:
     name: "{{ item }}"
     state: latest
+    update_cache: yes
   with_items:
     - postgresql
     - postgresql-9.6
@@ -41,6 +42,7 @@
     name: postgres
     password: "{{ db_root_pass }}"
     state: present
+    encrypted: yes
   when: not remote_db
 
 - name: Create Database
@@ -58,6 +60,7 @@
     password: "{{ db_pass }}"
     role_attr_flags: LOGIN
     state: present
+    encrypted: yes
 
 - name: GRANT PRIVILEGES
   become_user: postgres
