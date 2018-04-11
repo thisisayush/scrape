@@ -153,7 +153,7 @@ class postgresSQL(object):
             if not self.checkConnection():
                 return False
             # Prepare the Query
-            postgresQuery = "INSERT INTO " + DB_INFO['NEWS_TABLE'] + " (title, content, image, category, link, newsDate, site_id, log_id, datescraped) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())"
+            postgresQuery = "INSERT INTO " + DB_INFO['NEWS_TABLE'] + " (title, content, image, category, link, newsDate, site_id, log_id, datescraped) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())"
 
             # Execute the Query
             self.cursor.execute(postgresQuery,
