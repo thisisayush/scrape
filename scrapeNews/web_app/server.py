@@ -75,8 +75,8 @@ def get_items(resource):
     if resource == "logs":
        sql = "WITH res_main AS ( \
                    SELECT s.site_name, s.spider_name, l.* FROM " + DB_INFO['LOG_TABLE'] + " \
-                   AS l JOIN " + DB_INFO['SITE_TABLE'] + " AS s ON l.site = s.id \
-                   WHERE LOWER(s.site_name) LIKE %s OR LOWER(l.shutdown_reason) LIKE %s OR l.id::text LIKE %s \
+                   AS l JOIN " + DB_INFO['SITE_TABLE'] + " AS s ON l.spider_id = s.id \
+                   WHERE LOWER(s.site_name) LIKE %s OR LOWER(l.close_reason) LIKE %s OR l.id::text LIKE %s \
                ), res_count AS ( \
                    SELECT COUNT(*) AS total FROM res_main \
                )";
@@ -119,7 +119,7 @@ def get_logs_or_items(sql, sort, order, queries):
     try:
         conn = postgresSQL()
         conn.cursor.execute(sql, queries)
-
+        
         data = conn.RealDictCursor.fetchall()
         for row in data:
             item = {}
